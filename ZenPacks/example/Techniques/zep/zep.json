@@ -1,0 +1,14 @@
+{
+    "EventDetailItem": [
+        {
+            "key": "zenpacks.example.techniques.my_custom_detail",
+            "type": "1",
+            "name": "My Custom Detail"
+        },
+        {
+            "key": "zenpacks.example.techniques.my_event_color",
+            "type": "2",
+            "name": "Event Color"
+        }
+    ]
+}

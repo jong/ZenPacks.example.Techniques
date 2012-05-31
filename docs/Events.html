@@ -354,20 +354,21 @@ functionality and behavior.</p>
 <tt class="docutils literal">zeneventd</tt> plugins, transforms and <tt class="docutils literal">zeneventserver</tt> plugins. This data is
 also returned with events whenever <tt class="docutils literal">zeneventserver</tt> is queried. By default,
 this data is not indexed and cannot be used to create an event filter.</p>
+<!-- TODO: Link plugins/transforms/zeneventserver to other doc parts. -->
 <p>When choosing custom detail keys, the naming convention is to use lowercased
-zenpack dotted notation: &quot;ZenPacks.example.Techniques&quot; becomes
-&quot;zenpacks.example.techniques&quot; with whatever key or keys you would like:
-&quot;zenpacks.example.techniques.my_custom_detail&quot;.</p>
+zenpack dotted notation: <tt class="docutils literal">ZenPacks.example.Techniques</tt> becomes
+<tt class="docutils literal">zenpacks.example.techniques</tt> and the developer would append their keys like
+this: <tt class="docutils literal">zenpacks.example.techniques.my_custom_detail</tt>.</p>
 <div class="section" id="indexed-event-details">
 <h2><a class="toc-backref" href="#id3">Indexed Event Details</a></h2>
 <p>Custom details must be indexed in order to be used in event filters. To specify
 details to be indexed, a ZenPack must provide a <tt class="docutils literal">zep.json</tt> file. This file
-should reside in the <tt class="docutils literal">zep</tt> directory in the root of your ZenPack (i.e.:
+should reside in the <tt class="docutils literal">zep</tt> directory in the root of the ZenPack (e.g.,
 <tt class="docutils literal">ZenPacks/example/Techniques/zep/zep.json</tt>). This file specifies details to
 be indexed using the detail key, type and human-readable name. Details must be
-provided under the 'EventDetailItem' key which corresponds to the
-EventDetailItem protobuf class
-(see: zenoss.protocols.protobufs.zep_pb2.EventDetailItem).</p>
+provided under the <tt class="docutils literal">EventDetailItem</tt> key which corresponds to the
+<a class="reference external" href="http://dev.zenoss.org/trac/browser/trunk/protocols/interface/src/protobufs/zenoss/protocols/protobufs/zep.proto">EventDetailItem</a>
+protobuf class. The default type for a detail is <tt class="docutils literal">str</tt>.</p>
 <p>An example file:</p>
 <pre class="literal-block">
 {
@@ -387,14 +388,15 @@ EventDetailItem protobuf class
 </pre>
 <p>Upon installation, <tt class="docutils literal">zeneventserver</tt> will begin indexing events by the details
 described in this JSON file. After removal of this ZenPack, these details will
-no longer be able to be queried against.</p>
+no longer be able to be used when constructing event filters, however the data
+will still exist in the event's details.</p>
 <div class="section" id="custom-detail-renderers">
 <h3><a class="toc-backref" href="#id4">Custom Detail Renderers</a></h3>
 <p>Along with custom details, ZenPacks may provide custom column definitions and
 renderers for the custom details in the event console. This is done by adding
 custom column definitions in javascript provided by the ZenPack.</p>
-<p><strong>&#64;TODO : More info.</strong></p>
-<p><strong>&#64;TODO : Examples.</strong></p>
+<!-- TODO : More info. -->
+<!-- TODO : Examples. -->
 </div>
 </div>
 <div class="section" id="add-details-from-the-command-line">
@@ -403,9 +405,13 @@ custom column definitions in javascript provided by the ZenPack.</p>
 arguments. More detail can be seen in the <tt class="docutils literal">zensendevent <span class="pre">--help</span></tt> output.
 An example:</p>
 <pre class="literal-block">
-$ zensendevent -d localhost -s Critical --other=&quot;zenpacks.example.techniques.my_custom_detail='my value'&quot;
+$ zensendevent -d localhost -s Critical --other=&quot;zenpacks.example.techniques.my_custom_detail='my value'&quot; &quot;Example summary.&quot;
 </pre>
-<p>The value for a detail by default has the type of <tt class="docutils literal">str</tt>.</p>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">When sending an event from the command line you cannot set multiple
+values.</p>
+</div>
 </div>
 <div class="section" id="add-details-from-python">
 <h2><a class="toc-backref" href="#id6">Add Details From Python</a></h2>
@@ -413,13 +419,24 @@ $ zensendevent -d localhost -s Critical --other=&quot;zenpacks.example.technique
 <h3><a class="toc-backref" href="#id7">Using ZenEventManager</a></h3>
 <p>When using ZenEventManager, any additional keys passed into the <tt class="docutils literal">sendEvent</tt>
 method that do not correspond to a known event attribute are considered
-details. This example can be run from within zendmd:</p>
+details. This example can be run from within <tt class="docutils literal">zendmd</tt>:</p>
 <pre class="literal-block">
 event = {
     'device' : &quot;localhost&quot;,
     'severity' : &quot;Critical&quot;,
-    'message' : &quot;This is a test event.&quot;,
+    'summary' : &quot;This is a test event.&quot;,
     'zenpacks.example.techniques.example_detail' : 'A custom detail example.'
+}
+dmd.ZenEventManager.sendEvent(event)
+</pre>
+<p>When sending events from within python, developers can send multi-valued details by
+setting the value to any iterator:</p>
+<pre class="literal-block">
+event = {
+    'device' : &quot;localhost&quot;,
+    'severity' : &quot;Critical&quot;,
+    'summary' : &quot;This is another test event.&quot;,
+    'zenpacks.example.techniques.example_multi_detail': [x for x in xrange(10)]
 }
 dmd.ZenEventManager.sendEvent(event)
 </pre>
@@ -513,10 +530,17 @@ def resolveIdentifiers(self, eventContext, eventProcessorManager):
     if not getattr(eventContext.eventProxy, my_special_key, False):
         eventContext.eventProxy.device = 'localhost.localdomain'
 </pre>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">To experiment with the plugins provided in this ZenPack, edit the
+files in ___ and restart zeneventd.</p>
+</div>
+<!-- TODO: Create the example plugins. -->
 </div>
 </div>
 <div class="section" id="zeneventd-plugins">
 <h1><a class="toc-backref" href="#id11"><tt class="docutils literal">zeneventd</tt> Plugins</a></h1>
+<!-- TODO: Organize this section. -->
 <p>Check the event plugin directives:
 Products.ZenModel.ZenPackTemplate.CONTENT.configure.zcml</p>
 <ul class="simple">
@@ -526,10 +550,10 @@ Products.ZenModel.ZenPackTemplate.CONTENT.configure.zcml</p>
 <p>From here:</p>
 <blockquote>
 from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin, IEventIdentifierPlugin</blockquote>
-<p>General pipeline workings:</p>
+<p><tt class="docutils literal">zeneventd</tt> Processing Pipeline</p>
 <ol class="arabic" start="0">
 <li><dl class="first docutils">
-<dt><strong>IPreEventPlugin</strong> - this plugin is called before anything else happens.</dt>
+<dt><tt class="docutils literal">IPreEventPlugin</tt> - this plugin is called before anything else happens.</dt>
 <dd><p class="first last">see ZenPacks.zenoss.MultiRealmIP/ZenPacks/zenoss/MultiRealmIP/__init__.py
 This just sets a detail.</p>
 </dd>
@@ -538,7 +562,7 @@ This just sets a detail.</p>
 <li><p class="first">Input Check - verify required fields are present (actor, summary, severity)</p>
 </li>
 <li><dl class="first docutils">
-<dt>Identified - Run all <strong>IEventIdentifierPlugin</strong> - the Zenoss BaseEventIdentifierPlugin is run last.</dt>
+<dt>Identified - Run all <tt class="docutils literal">IEventIdentifierPlugin</tt> - the Zenoss BaseEventIdentifierPlugin is run last.</dt>
 <dd><p class="first last">see ZenPacks.zenoss.MultiRealmIP/ZenPacks/zenoss/MultiRealmIP/__init__.py
 This zenpack uses some custom logic to identify an element.</p>
 </dd>
@@ -552,15 +576,16 @@ This zenpack uses some custom logic to identify an element.</p>
 </li>
 <li><p class="first">Fingerprint calculated</p>
 </li>
-<li><p class="first"><strong>IPostEventPlugin</strong> - Post-processing plugins are run.</p>
+<li><p class="first"><tt class="docutils literal">IPostEventPlugin</tt> - Post-processing plugins are run.</p>
 </li>
 </ol>
-<p>If you want to drop an event, raise DropEvent from here:</p>
-<blockquote>
-from Products.ZenEvents.events2.processing import DropEvent</blockquote>
-<p>signature is: (message, event)</p>
+<p>In a plugin, if you would like to drop an event, raise a <tt class="docutils literal">DropEvent</tt> instance
+which can be imported from:</p>
+<pre class="literal-block">
+from Products.ZenEvents.events2.processing import DropEvent
+</pre>
 <p>If the event makes it all the way through the pipeline, it gets published to
-the zep exchanged to be consumed by zep.</p>
+the <tt class="docutils literal">zenoss.zenevents.zep</tt> exchange to be processed by <tt class="docutils literal">zeneventserver</tt>.</p>
 </div>
 <div class="section" id="zeneventserver-plugins">
 <h1><a class="toc-backref" href="#id12"><tt class="docutils literal">zeneventserver</tt> Plugins</a></h1>

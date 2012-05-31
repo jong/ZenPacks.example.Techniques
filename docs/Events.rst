@@ -22,10 +22,12 @@ Events may have arbitrary data attached to them. This data can be accessed in
 also returned with events whenever ``zeneventserver`` is queried. By default, 
 this data is not indexed and cannot be used to create an event filter.
 
+.. TODO: Link plugins/transforms/zeneventserver to other doc parts.
+
 When choosing custom detail keys, the naming convention is to use lowercased 
-zenpack dotted notation: "ZenPacks.example.Techniques" becomes 
-"zenpacks.example.techniques" with whatever key or keys you would like: 
-"zenpacks.example.techniques.my_custom_detail".
+zenpack dotted notation: ``ZenPacks.example.Techniques`` becomes 
+``zenpacks.example.techniques`` and the developer would append their keys like 
+this: ``zenpacks.example.techniques.my_custom_detail``.
 
 
 Indexed Event Details
@@ -33,12 +35,12 @@ Indexed Event Details
 
 Custom details must be indexed in order to be used in event filters. To specify
 details to be indexed, a ZenPack must provide a ``zep.json`` file. This file 
-should reside in the ``zep`` directory in the root of your ZenPack (i.e.: 
+should reside in the ``zep`` directory in the root of the ZenPack (e.g., 
 ``ZenPacks/example/Techniques/zep/zep.json``). This file specifies details to 
-be indexed using the detail key, type and human-readable name. Details must be
-provided under the 'EventDetailItem' key which corresponds to the 
-EventDetailItem protobuf class 
-(see: zenoss.protocols.protobufs.zep_pb2.EventDetailItem).
+be indexed using the detail key, type and human-readable name. Details must be 
+provided under the ``EventDetailItem`` key which corresponds to the 
+`EventDetailItem <http://dev.zenoss.org/trac/browser/trunk/protocols/interface/src/protobufs/zenoss/protocols/protobufs/zep.proto>`_
+protobuf class. The default type for a detail is ``str``.
 
 An example file:
 
@@ -61,7 +63,8 @@ An example file:
 
 Upon installation, ``zeneventserver`` will begin indexing events by the details
 described in this JSON file. After removal of this ZenPack, these details will
-no longer be able to be queried against.
+no longer be able to be used when constructing event filters, however the data
+will still exist in the event's details.
 
 
 Custom Detail Renderers
@@ -71,9 +74,9 @@ Along with custom details, ZenPacks may provide custom column definitions and
 renderers for the custom details in the event console. This is done by adding
 custom column definitions in javascript provided by the ZenPack.
 
-**@TODO : More info.**
+.. TODO : More info.
 
-**@TODO : Examples.**
+.. TODO : Examples.
 
 
 Add Details From The Command Line
@@ -83,9 +86,10 @@ To add details from the command line, specify the ``-o`` or ``--other``
 arguments. More detail can be seen in the ``zensendevent --help`` output.
 An example::
 
-    $ zensendevent -d localhost -s Critical --other="zenpacks.example.techniques.my_custom_detail='my value'"
+    $ zensendevent -d localhost -s Critical --other="zenpacks.example.techniques.my_custom_detail='my value'" "Example summary."
 
-The value for a detail by default has the type of ``str``.
+.. Note:: When sending an event from the command line you cannot set multiple
+    values.
 
 
 Add Details From Python
@@ -97,13 +101,24 @@ Using ZenEventManager
 
 When using ZenEventManager, any additional keys passed into the ``sendEvent``
 method that do not correspond to a known event attribute are considered 
-details. This example can be run from within zendmd::
+details. This example can be run from within ``zendmd``::
 
     event = {
         'device' : "localhost",
         'severity' : "Critical",
-        'message' : "This is a test event.",
+        'summary' : "This is a test event.",
         'zenpacks.example.techniques.example_detail' : 'A custom detail example.'
+    }
+    dmd.ZenEventManager.sendEvent(event)
+
+When sending events from within python, developers can send multi-valued details by
+setting the value to any iterator::
+
+    event = {
+        'device' : "localhost",
+        'severity' : "Critical",
+        'summary' : "This is another test event.",
+        'zenpacks.example.techniques.example_multi_detail': [x for x in xrange(10)]
     }
     dmd.ZenEventManager.sendEvent(event)
 
@@ -200,11 +215,16 @@ implementation is similar::
         if not getattr(eventContext.eventProxy, my_special_key, False):
             eventContext.eventProxy.device = 'localhost.localdomain'
 
+.. Note:: To experiment with the plugins provided in this ZenPack, edit the 
+    files in ___ and restart zeneventd.
+
+.. TODO: Create the example plugins.
 
 
 ``zeneventd`` Plugins
 =====================
 
+.. TODO: Organize this section.
 
 Check the event plugin directives:
 Products.ZenModel.ZenPackTemplate.CONTENT.configure.zcml
@@ -217,15 +237,15 @@ From here:
 
     from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin, IEventIdentifierPlugin
 
-General pipeline workings:
+``zeneventd`` Processing Pipeline
 
-0. **IPreEventPlugin** - this plugin is called before anything else happens.
+0. ``IPreEventPlugin`` - this plugin is called before anything else happens.
     see ZenPacks.zenoss.MultiRealmIP/ZenPacks/zenoss/MultiRealmIP/__init__.py
     This just sets a detail.
 
 1. Input Check - verify required fields are present (actor, summary, severity)
 
-2. Identified - Run all **IEventIdentifierPlugin** - the Zenoss BaseEventIdentifierPlugin is run last.
+2. Identified - Run all ``IEventIdentifierPlugin`` - the Zenoss BaseEventIdentifierPlugin is run last.
     see ZenPacks.zenoss.MultiRealmIP/ZenPacks/zenoss/MultiRealmIP/__init__.py
     This zenpack uses some custom logic to identify an element.
     
@@ -237,17 +257,15 @@ General pipeline workings:
 
 6. Fingerprint calculated
 
-7. **IPostEventPlugin** - Post-processing plugins are run.
+7. ``IPostEventPlugin`` - Post-processing plugins are run.
 
-
-If you want to drop an event, raise DropEvent from here:
+In a plugin, if you would like to drop an event, raise a ``DropEvent`` instance
+which can be imported from::
 
     from Products.ZenEvents.events2.processing import DropEvent
 
-signature is: (message, event)
-
 If the event makes it all the way through the pipeline, it gets published to 
-the zep exchanged to be consumed by zep.
+the ``zenoss.zenevents.zep`` exchange to be processed by ``zeneventserver``.
 
 
 ``zeneventserver`` Plugins
